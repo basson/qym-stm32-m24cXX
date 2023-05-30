@@ -20,11 +20,9 @@ namespace qymdrv
     }
     bool M24cxx::WriteData(uint16_t address, uint8_t *data, uint16_t len, uint16_t delayUs)
     {
-        HAL_StatusTypeDef status;
-        if (!delayUs)
-            delayUs = HAL_MAX_DELAY;
 
-        /// TODO Refract this bucake code
+        if (!delayUs)
+            delayUs = (uint16_t)HAL_MAX_DELAY;
 
         uint8_t blockStart = 0;
         uint8_t blockSize = 32;
@@ -32,27 +30,38 @@ namespace qymdrv
         {
             if (len < 32)
                 blockSize = len;
-            HAL_I2C_Mem_Write(_i2cPort, _address, address, I2C_MEMADD_SIZE_16BIT, data + blockStart, blockSize, delayUs);
+            if (HAL_I2C_Mem_Write(_i2cPort, _address, address, I2C_MEMADD_SIZE_16BIT, data + blockStart, blockSize, delayUs) != HAL_OK)
+                return false;
             HAL_Delay(10);
             if (len < 32)
                 break;
             blockStart += 32;
             len -= 32;
-            address+=32;
+            address += 32;
         }
-        return false;
+        return true;
     }
     bool M24cxx::ReadData(uint16_t address, uint8_t *data, uint16_t len, uint16_t delayUs)
     {
+        uint8_t waitTry = 3;
         HAL_StatusTypeDef status;
+
+        if (!delayUs)
+            delayUs = (uint16_t)HAL_MAX_DELAY;
+
         for (;;)
         {
-            status = HAL_I2C_IsDeviceReady(_i2cPort, _address, 1, HAL_MAX_DELAY);
+            status = HAL_I2C_IsDeviceReady(_i2cPort, _address, 1, delayUs);
             if (status == HAL_OK)
                 break;
+            else
+            {
+                waitTry--;
+                if(waitTry <= 0)
+                    return false;
+            }
         }
-        if (!delayUs)
-            delayUs = HAL_MAX_DELAY;
+        
 
         if (HAL_I2C_Mem_Read(_i2cPort, _address, address, I2C_MEMADD_SIZE_16BIT, data, len, delayUs) == HAL_OK)
             return true;
