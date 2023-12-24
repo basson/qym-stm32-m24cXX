@@ -20,6 +20,9 @@ namespace qymdrv
     }
     bool M24cxx::WriteData(uint16_t address, uint8_t *data, uint16_t len, uint16_t delayUs)
     {
+        uint32_t historySpeed = _i2cPort->Init.ClockSpeed;
+        _i2cPort->Init.ClockSpeed = 100000;
+        HAL_I2C_Init(_i2cPort);
 
         if (!delayUs)
             delayUs = (uint16_t)HAL_MAX_DELAY;
@@ -39,12 +42,15 @@ namespace qymdrv
             len -= 32;
             address += 32;
         }
+        _i2cPort->Init.ClockSpeed = historySpeed;
+        HAL_I2C_Init(_i2cPort);
         return true;
     }
     bool M24cxx::ReadData(uint16_t address, uint8_t *data, uint16_t len, uint16_t delayUs)
     {
         uint8_t waitTry = 3;
         HAL_StatusTypeDef status;
+        bool ret = false;
 
         if (!delayUs)
             delayUs = (uint16_t)HAL_MAX_DELAY;
@@ -57,14 +63,19 @@ namespace qymdrv
             else
             {
                 waitTry--;
-                if(waitTry <= 0)
+                if (waitTry <= 0)
                     return false;
             }
         }
-        
-
+        uint32_t historySpeed = _i2cPort->Init.ClockSpeed;
+        _i2cPort->Init.ClockSpeed = 100000;
+        HAL_I2C_Init(_i2cPort);
         if (HAL_I2C_Mem_Read(_i2cPort, _address, address, I2C_MEMADD_SIZE_16BIT, data, len, delayUs) == HAL_OK)
-            return true;
-        return false;
+        {
+            ret = true;
+        }
+        _i2cPort->Init.ClockSpeed = historySpeed;
+        HAL_I2C_Init(_i2cPort);
+        return ret;
     }
 } // namespace qymdrv
