@@ -15,7 +15,7 @@ struct ExMem
 // Starting address to write/read
 uin16_t exMemAddr = 32;
 
-qymdrv::m24cxx eeprom;
+qymos::driver::m24cxx eeprom;
 
 // Set HAL i2c handle struct
 eeprom.SetPort(&hi2c2);
