@@ -1,5 +1,5 @@
 {
-    "name": "QymDrv m24cXX - EEPROM library",
+    "name": "QymOS stm32 driver m24cXX - EEPROM library",
     "version": "0.0.2",
     "authors": {
         "name": "Denis Kazachenkov",
