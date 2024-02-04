@@ -1,4 +1,4 @@
-#include "../include/m24cxx.hpp"
+#include "../include/drivers/m24cxx.hpp"
 
 namespace qymos
 {
